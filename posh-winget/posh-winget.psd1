@@ -1,6 +1,6 @@
 @{
     RootModule = 'posh-winget.psm1'
-    ModuleVersion = '0.0.3'
+    ModuleVersion = '0.0.4'
     GUID = '9b311919-2cd3-4c9f-bf8f-b35cf063da58'
     Author = 'nuits.jp'
     Copyright = '(c) nuits.jp. All rights reserved.'
@@ -9,6 +9,7 @@
     FunctionsToExport = @(
         'Install-Winget'
         'Test-InstalledWinget'
+        'Import-Winget'
     )
     CmdletsToExport = @()
     VariablesToExport = '*'
@@ -21,6 +22,7 @@
             Tags = @('winget')
             IconUri = 'https://raw.githubusercontent.com/nuitsjp/posh-winget/main/nuits.jp.256x256.png'
             RequireLicenseAcceptance = $false
+            ExternalModuleDependencies = @('powershell-yaml')
         }
     }
 }
