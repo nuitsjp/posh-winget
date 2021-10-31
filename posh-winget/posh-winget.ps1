@@ -103,43 +103,32 @@ function Read-Package {
     $enc = [system.Text.Encoding]::UTF8 #GetEncoding('Shift_JIS')
     $header = $Packages[0].Trim()
     $header = $header.Substring($header.LastIndexOf("`r") + 1);
-    $headerColumns = ($header -split ' ') | Where-Object { $_.length -ne 0 }
-    $nameIndex;
-    $idIndex;
-    $versionIndex;
-    $latestVersionIndex;
-    $sourceIndex;
-    if ($header.Length -eq 5) {
-        $nameIndex = 0;
-        $idIndex;
-        $versionIndex;
-        $latestVersionIndex;
-        $sourceIndex;
+    $index = 0
+    $indexs = @()
+    $isSpace = $true;
+    foreach ($char in $header.ToCharArray())
+    {
+        if(($isSpace) -and ($char -ne " ")) {
+            $indexs += $index
+        }
+        if ($char -eq " ") {
+            $isSpace = $true
+        }
+        else {
+            $isSpace = $false
+        }
+
+        if ($enc.GetBytes($char).Length -eq 1) {
+            $index += 1;
+        }
+        else {
+            $index += 2;
+        }
     }
-    # $header[0]
-    # $header.IndexOf(' ')
-    # $header.Substring(0, 18)
-    # $data1 = $enc.GetBytes($header) 
-    # $data1
 
-
-    # $Packages
-    # $header = $Packages[0]
-    # $sourceIndex = $header.LastIndexOf(' ');
-    # $package = $Packages[2]
-    # $package.Substring($sourceIndex);
-    # $temp = $Packages
-    # $source = $temp.Substring($temp.LastIndexOf(' ')).Trim()
-    # $source
-    # $temp = $temp.Substring(0, $temp.LastIndexOf(' '))
-    # $version = $temp.Substring($temp.LastIndexOf(' ')).Trim()
-    # $version
-    # $temp = $temp.Substring(0, $temp.LastIndexOf(' '))
-    # $idPrefix = $temp.Substring($temp.LastIndexOf(' ')).Trim()
-    # $idPrefix
-    # $temp = $temp.Substring(0, $temp.LastIndexOf(' '))
-    # $namePrefix = $temp.Substring($temp.LastIndexOf(' ')).Trim()
-    # $namePrefix
+    foreach ($x in $indexs) {
+        $header.Substring($x);
+    }
 }
 
 function Invoke-Winget {
