@@ -7,9 +7,10 @@
     PowerShellVersion = '3.0'
     Description = 'Support PowerShell module for winget.'
     FunctionsToExport = @(
-        'Install-Winget'
+        'Winget-Install'
         'Test-InstalledWinget'
-        'Import-Winget'
+        'Winget-Import'
+        'Winget-List'
     )
     CmdletsToExport = @()
     VariablesToExport = '*'
