@@ -95,39 +95,116 @@ function Read-Package {
         [string[]]
         $Packages
     )
-    $result = @()
     if($Packages.Length -eq 1) {
-        $result
+        @()
     }
 
-    $enc = [system.Text.Encoding]::UTF8 #GetEncoding('Shift_JIS')
-    $header = $Packages[0].Trim()
-    $header = $header.Substring($header.LastIndexOf("`r") + 1);
-    $index = 0
+    $header = $Packages[0]
+    $header = $header.Substring($header.LastIndexOf("`r") + 1).Trim()
     $indexs = @()
-    $isSpace = $true;
-    foreach ($char in $header.ToCharArray())
-    {
-        if(($isSpace) -and ($char -ne " ")) {
-            $indexs += $index
-        }
-        if ($char -eq " ") {
-            $isSpace = $true
-        }
-        else {
-            $isSpace = $false
-        }
-
-        if ($enc.GetBytes($char).Length -eq 1) {
-            $index += 1;
-        }
-        else {
-            $index += 2;
-        }
+    $header.Split(" ") | Where-Object { $_.Length -ne 0} | ForEach-Object {
+        $column = $_
+        $indexs += Get-Width $header.Substring(0, $header.IndexOf($column))
     }
 
-    foreach ($x in $indexs) {
-        $header.Substring($x);
+    # $indexs
+    [array]::Reverse( $indexs )
+
+    $result = @()
+    $Packages | Select-Object -Skip 2 | ForEach-Object {
+        $line = $_
+        $columns = @()
+        $indexs | ForEach-Object {
+            $index = Get-Index $line $_
+            $column = $line.Substring($index).Trim()
+            if ($column.EndsWith("…")) {
+                $column = $column.Substring(0, $column.Length - 1)
+            }
+            $columns += $column
+            $line = $line.Substring(0, $index)
+        }
+        if ($columns.Length -eq 5) {
+            $result += [PSCustomObject]@{
+                NamePrefix = $columns[4]
+                IdPrefix = $columns[3]
+                Version = $columns[2]
+                Available = $columns[1]
+                Source = $columns[0]
+            }
+        }
+        els {
+            $result += [PSCustomObject]@{
+                NamePrefix = $columns[3]
+                IdPrefix = $columns[3]
+                Version = $columns[1]
+                Source = $columns[0]
+            }
+        }
+    }
+    $result
+}
+
+function Get-Width
+{
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string]
+        $str
+    )
+    $encoding = [system.Text.Encoding]::UTF8
+    $charArray = $str.ToCharArray()
+    $width = 0
+    for ($i = 0; $i -lt $charArray.Count; $i++) {
+        $char = $charArray[$i]
+        if($char -eq "…") {
+            $width += 1;
+        }
+        elseif ($encoding.GetBytes($char).Length -eq 1) {
+            $width += 1;
+        }
+        else {
+            $width += 2;
+        }
+    }
+    $width
+}
+
+function Get-Index
+{
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string]
+        $Word,
+        [Parameter()]
+        [int]
+        $halfCharIndex
+    )
+    $encoding = [system.Text.Encoding]::UTF8
+
+    if ($halfCharIndex -eq 0) {
+        0
+        return
+    }
+
+    $wordChars = $Word.ToCharArray()
+    $currentIndex = 0
+    for ($i = 0; $i -lt $wordChars.Count; $i++) {
+        $current = $Word[$i]
+        if($current -eq "…") {
+            $currentIndex += 1;
+        }
+        elseif ($encoding.GetBytes($current).Length -eq 1) {
+            $currentIndex += 1;
+        }
+        else {
+            $currentIndex += 2;
+        }
+        if($currentIndex -eq $halfCharIndex) {
+            ($i + 1)
+            break
+        }
     }
 }
 
