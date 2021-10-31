@@ -27,7 +27,7 @@ function Get-Width
 }
 
 # Winget-List -id Microsoft.VisualStudio.2022.Enterprise-Preview
-Winget-List Visual
+Winget-List Visual | Format-Table
 
 # $line = "名前                                 ID                                   バージョン          利用可能           ソース"
 # $line.Split(" ") | Where-Object { $_.Length -ne 0} | ForEach-Object {

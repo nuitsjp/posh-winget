@@ -85,6 +85,7 @@ function Winget-List {
     }
     else {
         $listText = (Invoke-Winget list $Query) -split "`r`n"
+        Read-Package $listText
     }
 }
 
@@ -132,11 +133,12 @@ function Read-Package {
                 Source = $columns[0]
             }
         }
-        els {
+        else {
             $result += [PSCustomObject]@{
                 NamePrefix = $columns[3]
                 IdPrefix = $columns[3]
                 Version = $columns[1]
+                Available = $null
                 Source = $columns[0]
             }
         }
