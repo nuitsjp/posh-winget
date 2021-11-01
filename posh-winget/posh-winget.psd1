@@ -1,16 +1,15 @@
 @{
     RootModule = 'posh-winget.psm1'
-    ModuleVersion = '0.0.4'
+    ModuleVersion = '0.0.6'
     GUID = '9b311919-2cd3-4c9f-bf8f-b35cf063da58'
     Author = 'nuits.jp'
     Copyright = '(c) nuits.jp. All rights reserved.'
     PowerShellVersion = '3.0'
     Description = 'Support PowerShell module for winget.'
     FunctionsToExport = @(
-        'Winget-Install'
-        'Test-InstalledWinget'
-        'Winget-Import'
-        'Winget-List'
+        'Invoke-WingetList'
+        'Invoke-WingetInstall'
+        'Invoke-WingetImport'
     )
     CmdletsToExport = @()
     VariablesToExport = '*'

@@ -1,35 +1,89 @@
-function Winget-Install {
+function Invoke-WingetList {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)]
+        [Parameter()]
         [string]
-        $Id
+        $Query,
+        [Parameter()]
+        [string]
+        $Id,
+        [Parameter()]
+        [string]
+        $Name,
+        [Parameter()]
+        [string]
+        $Moniker,
+        [Parameter()]
+        [string]
+        $Source,
+        [Parameter()]
+        [string]
+        $Tag,
+        [Parameter()]
+        [string]
+        $Command,
+        [Parameter()]
+        [int]
+        $Count,
+        [Parameter()]
+        [switch]
+        $Exact
     )
+    $arguments = @()
+    $arguments += $Query
+    if ($Id) {
+        $arguments += "--id"
+        $arguments += $Id
+    }
+    if ($Name) {
+        $arguments += "--name"
+        $arguments += $Name
+    }
+    if ($Moniker) {
+        $arguments += "--moniker"
+        $arguments += $Moniker
+    }
+    if ($Source) {
+        $arguments += "--source"
+        $arguments += $Source
+    }
+    if ($Tag) {
+        $arguments += "--tag"
+        $arguments += $Tag
+    }
+    if ($Command) {
+        $arguments += "--command"
+        $arguments += $Command
+    }
+    if ($Count) {
+        $arguments += "--count"
+        $arguments += $Count.ToString()
+    }
+    if ($Exact) {
+        $arguments += "--exact"
+    }
 
-    if((Test-InstalledWinget -Id $Id) -eq $false) {
-        winget install --id $Id
-        $true
+    $result = (Invoke-Winget list $arguments)
+    if ($result.IsSuccess) {
+        Read-Package ($result.StandardOutput.Trim() -split "`r`n")
     }
     else {
-        $false
+        @()
     }
 }
 
-function Test-InstalledWinget
-{
+function Invoke-WingetInstall {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
         [string]
         $Id
     )
-  
-    $list = winget list --id $Id
-    $Packagess = ($list | Measure-Object -Line).Lines
-    $Packagess -eq 5
+
+    winget install --id $Id
 }
 
-function Winget-Import {
+function Invoke-WingetImport {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
@@ -40,12 +94,11 @@ function Winget-Import {
     $config = Get-Content -Path $Path | ConvertFrom-Yaml
     $config | ForEach-Object {
         $package = $_
-        $list = winget list --id $package.id
-        $Packagess = ($list | Measure-Object -Line).Lines
-        if($Packagess -lt 5) {
+        $list = Invoke-WingetList -Id $package.id -Exact
+        if($list.Length -eq 0) {
             $arguments = @()
             $arguments += 'install'
-            if($package.silent -ne $false) {
+            if($package.silent) {
                 $arguments += '--silent'
             }
             $arguments += '--id'
@@ -61,30 +114,6 @@ function Winget-Import {
         } else {
             Write-Host "$($package.id) is installed."
         }
-    }
-}
-
-function Winget-List {
-    [CmdletBinding()]
-    param (
-        [Parameter()]
-        [string]
-        $Query,
-        [Parameter()]
-        [string]
-        $Id
-    )
-    if ($Id) {
-        $listText = (Invoke-Winget list "--id $Id") -split "`r`n"
-        if ($listText.Length -eq 1) {
-            $null
-        }
-        else {
-            Read-Package $listText
-        }
-    }
-    else {
-        $listText = (Invoke-Winget list $Query) -split "`r`n"
     }
 }
 
@@ -107,7 +136,6 @@ function Read-Package {
         $indexs += Get-Width $header.Substring(0, $header.IndexOf($column))
     }
 
-    # $indexs
     [array]::Reverse( $indexs )
 
     $result = @()
@@ -116,12 +144,20 @@ function Read-Package {
         $columns = @()
         $indexs | ForEach-Object {
             $index = Get-Index $line $_
-            $column = $line.Substring($index).Trim()
-            if ($column.EndsWith("…")) {
-                $column = $column.Substring(0, $column.Length - 1)
+            if( $index -ge 0) {
+                $column = $line.Substring($index).Trim()
+                if ($column.EndsWith("…")) {
+                    $column = $column.Substring(0, $column.Length - 1)
+                }
+                if ($column.Length -eq 0) {
+                    $column = $null
+                }
+                $columns += $column
+                $line = $line.Substring(0, $index)
             }
-            $columns += $column
-            $line = $line.Substring(0, $index)
+            else {
+                $columns += $null
+            }
         }
         if ($columns.Length -eq 5) {
             $result += [PSCustomObject]@{
@@ -132,12 +168,22 @@ function Read-Package {
                 Source = $columns[0]
             }
         }
-        els {
+        elseif ($columns.Length -eq 4) {
             $result += [PSCustomObject]@{
                 NamePrefix = $columns[3]
                 IdPrefix = $columns[3]
                 Version = $columns[1]
+                Available = $null
                 Source = $columns[0]
+            }
+        }
+        else {
+            $result += [PSCustomObject]@{
+                NamePrefix = $columns[2]
+                IdPrefix = $columns[1]
+                Version = $columns[0]
+                Available = $null
+                Source = $null
             }
         }
     }
@@ -215,19 +261,40 @@ function Invoke-Winget {
         [string]
         $Command,
         [Parameter()]
-        [string]
+        [array]
         $Arguments
     )
+    $argument = [string]::Join(' ', ($Arguments | Where-Object { $_.Length -ne 0 } | ForEach-Object { 
+        $value = $_
+        if ($value.StartsWith('--')) {
+            $value
+        }
+        else {
+            "`"${value}`"" 
+        }
+    }))
+
     $psi = New-Object Diagnostics.ProcessStartInfo
     $psi.FileName = $env:LOCALAPPDATA + "\Microsoft\WindowsApps\winget.exe"
-    $psi.Arguments = "$Command $Arguments"
+    $psi.Arguments = "$Command $argument"
     $psi.UseShellExecute = $false
     $psi.StandardOutputEncoding = [Text.Encoding]::UTF8
     $psi.RedirectStandardOutput = $true
     Using-Object ($p = [Diagnostics.Process]::Start($psi)) {
         $s = $p.StandardOutput.ReadToEnd()
         $p.WaitForExit()
-        $s.Trim()
+        if ($p.ExitCode -eq 0) {
+            [PSCustomObject]@{
+                IsSuccess = $true
+                StandardOutput = $s
+            }
+        }
+        else {
+            [PSCustomObject]@{
+                IsSuccess = $false
+                StandardOutput = $s
+            }
+        }
     }
 }
 
