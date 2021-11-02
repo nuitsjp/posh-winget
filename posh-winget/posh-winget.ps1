@@ -72,17 +72,6 @@ function Invoke-WingetList {
     }
 }
 
-function Invoke-WingetInstall {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory)]
-        [string]
-        $Id
-    )
-
-    winget install --id $Id
-}
-
 function Invoke-WingetImport {
     [CmdletBinding()]
     param (

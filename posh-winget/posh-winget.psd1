@@ -8,7 +8,6 @@
     Description = 'Support PowerShell module for winget.'
     FunctionsToExport = @(
         'Invoke-WingetList'
-        'Invoke-WingetInstall'
         'Invoke-WingetImport'
     )
     CmdletsToExport = @()

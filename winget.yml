@@ -1,1 +1,6 @@
-- id: 7zip.7zip
+- id: Git.Git
+- id: Microsoft.VisualStudioCode
+  packageParameters: >-
+    /VERYSILENT
+    /NORESTART
+    /MERGETASKS=!runcode,addcontextmenufiles,addcontextmenufolders,associatewithfiles,addtopath
