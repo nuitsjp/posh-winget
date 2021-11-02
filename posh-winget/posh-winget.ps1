@@ -130,8 +130,9 @@ function Read-Package {
 
     $header = $Packages[0]
     $header = $header.Substring($header.LastIndexOf("`r") + 1).Trim()
+    $columns = $header.Split(" ") | Where-Object { $_.Length -ne 0}
     $indexs = @()
-    $header.Split(" ") | Where-Object { $_.Length -ne 0} | ForEach-Object {
+    $columns | ForEach-Object {
         $column = $_
         $indexs += Get-Width $header.Substring(0, $header.IndexOf($column))
     }
@@ -159,6 +160,8 @@ function Read-Package {
                 $columns += $null
             }
         }
+        # I want to determine the properties from the column names. 
+        # However, since column names differ depending on the language, the number of columns should be used.
         if ($columns.Length -eq 5) {
             $result += [PSCustomObject]@{
                 NamePrefix = $columns[4]
@@ -171,7 +174,7 @@ function Read-Package {
         elseif ($columns.Length -eq 4) {
             $result += [PSCustomObject]@{
                 NamePrefix = $columns[3]
-                IdPrefix = $columns[3]
+                IdPrefix = $columns[2]
                 Version = $columns[1]
                 Available = $null
                 Source = $columns[0]
@@ -264,7 +267,7 @@ function Invoke-Winget {
         [array]
         $Arguments
     )
-    $argument = [string]::Join(' ', ($Arguments | Where-Object { $_.Length -ne 0 } | ForEach-Object { 
+    $convertedArguments = ($Arguments | Where-Object { $_.Length -ne 0 } | ForEach-Object { 
         $value = $_
         if ($value.StartsWith('--')) {
             $value
@@ -272,7 +275,14 @@ function Invoke-Winget {
         else {
             "`"${value}`"" 
         }
-    }))
+    })
+
+    if ($null -eq $convertedArguments) {
+        $argument = ''
+    }
+    else {
+        $argument = [string]::Join(' ', $convertedArguments)
+    }
 
     $psi = New-Object Diagnostics.ProcessStartInfo
     $psi.FileName = $env:LOCALAPPDATA + "\Microsoft\WindowsApps\winget.exe"
