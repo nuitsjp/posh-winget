@@ -10,11 +10,13 @@ posh-winget is a module until "winget import" supports the installer option. I a
 
 # Install
 
-Install it from the PowerShell Gallery as follows
+Install it from the [PowerShell Gallery](https://www.powershellgallery.com/packages/posh-winget) as follows
 
 ```powershell
 Install-Module posh-winget
 ```
+
+
 
 # Configuration file
 
