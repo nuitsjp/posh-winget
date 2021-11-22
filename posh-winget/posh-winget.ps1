@@ -92,6 +92,8 @@ function Invoke-WingetImport {
             }
             $arguments += '--id'
             $arguments += $package.id
+            $arguments += '--accept-package-agreements'
+            $arguments += '--accept-source-agreements'
 
             if($null -ne $package.packageParameters) {
                 $arguments += '--override'
