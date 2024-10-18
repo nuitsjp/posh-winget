@@ -1,3 +1,11 @@
+<#
+.SYNOPSIS
+This function is deprecated.
+
+.DESCRIPTION
+Invoke-WingetList is deprecated and will be removed in a future version.
+Consider using Get-WinGetPackage from the Microsoft.WinGet.Client module.
+#>
 function Invoke-WingetList {
     [CmdletBinding()]
     param (
@@ -29,6 +37,7 @@ function Invoke-WingetList {
         [switch]
         $Exact
     )
+    Write-Warning -Message "Invoke-WingetList is deprecated; Consider using Get-WinGetPackage from the Microsoft.WinGet.Client module."
     $arguments = @()
     $arguments += $Query
     if ($Id) {
@@ -72,6 +81,14 @@ function Invoke-WingetList {
     }
 }
 
+<#
+.SYNOPSIS
+This function is deprecated.
+
+.DESCRIPTION
+Invoke-WingetImport is deprecated and will be removed in a future version.
+Consider using Get-WinGetPackage from the Microsoft.WinGet.Client module.
+#>
 function Invoke-WingetImport {
     [CmdletBinding()]
     param (
@@ -79,6 +96,7 @@ function Invoke-WingetImport {
         [string]
         $Path
     )
+    Write-Warning -Message "Invoke-WingetImport is deprecated; Consider using Get-WinGetPackage from the Microsoft.WinGet.Client module."
 
     $config = Get-Content -Path $Path | ConvertFrom-Yaml
     $config | ForEach-Object {

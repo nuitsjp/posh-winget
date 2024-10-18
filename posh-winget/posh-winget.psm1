@@ -1,1 +1,1 @@
-. $PSScriptRoot\posh-winget.ps1
+. $PSScriptRoot\deprecated\posh-winget.ps1

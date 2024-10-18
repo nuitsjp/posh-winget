@@ -1,4 +1,4 @@
-. $PSScriptRoot\posh-winget\posh-winget.ps1
+. $PSScriptRoot\posh-winget\deprecated\posh-winget.ps1
 
 # Invoke-WingetImport $PSScriptRoot\winget.yml
 
